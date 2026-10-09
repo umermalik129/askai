@@ -5,9 +5,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Needed on Android 11+ to see whether the Claude app is installed. -->
+    <!-- Needed on Android 11+ to see whether the AI apps are installed. Keep in sync with AiApp. -->
     <queries>
         <package android:name="com.anthropic.claude" />
+        <package android:name="com.openai.chatgpt" />
+        <package android:name="com.google.android.apps.bard" />
+        <package android:name="ai.perplexity.app.android" />
+        <package android:name="ai.x.grok" />
+        <package android:name="com.microsoft.copilot" />
     </queries>
 
     <application
@@ -26,7 +31,7 @@
             </intent-filter>
         </activity>
 
-        <!-- "AskAI" entry in the text-selection menu: sends the selected text to the Claude app. -->
+        <!-- "AskAI" entry in the text-selection menu: sends the selected text to the chosen AI app. -->
         <activity
             android:name=".ProcessTextActivity"
             android:exported="true"

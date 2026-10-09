@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material 3 baseline palette; MainActivity switches to the wallpaper palette on Android 12+. -->
     <style name="Theme.AskAI" parent="Theme.Material3.DayNight.NoActionBar" />
 
     <style name="Theme.AskAI.Crop">

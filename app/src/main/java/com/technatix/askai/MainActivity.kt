@@ -8,48 +8,69 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.color.DynamicColors
+import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
     private val textEntry get() = ComponentName(this, ProcessTextActivity::class.java)
+    private lateinit var settings: Settings
+    private lateinit var appChips: ChipGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        settings = Settings(this)
 
-        val cbEntry = findViewById<CheckBox>(R.id.cbTextEntry)
-        cbEntry.isChecked = isEnabled(textEntry)
-        cbEntry.setOnCheckedChangeListener { _, on -> setEnabled(textEntry, on) }
+        val scroll = findViewById<View>(R.id.scroll)
+        val basePadding = scroll.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = basePadding + bars.bottom)
+            insets
+        }
+
+        header(R.id.hdrApp, R.drawable.ic_sparkle, "Send to")
+        header(R.id.hdrText, R.drawable.ic_text_select, "Selectable text")
+        header(R.id.hdrCapture, R.drawable.ic_capture, "Screen capture")
+        header(R.id.hdrMessages, R.drawable.ic_message, "Messages")
+
+        appChips = findViewById(R.id.cgApp)
+        buildAppChips()
+        findViewById<MaterialButton>(R.id.btnGetApp).setOnClickListener { settings.app.openStore(this) }
+
+        findViewById<MaterialSwitch>(R.id.swTextEntry).apply {
+            isChecked = isEnabled(textEntry)
+            setOnCheckedChangeListener { _, on -> setEnabled(textEntry, on) }
+        }
 
         findViewById<MaterialButton>(R.id.btnAddTile).setOnClickListener { addTile() }
-        findViewById<MaterialButton>(R.id.btnGetClaude).setOnClickListener { ClaudeApp.openStore(this) }
 
-        val settings = Settings(this)
-        val prompts = findViewById<EditText>(R.id.etPrompts)
-        prompts.setText(settings.promptsText)
-        val cbBurnIn = findViewById<CheckBox>(R.id.cbBurnIn)
-        cbBurnIn.isChecked = settings.burnIn
-        cbBurnIn.setOnCheckedChangeListener { _, on -> settings.burnIn = on }
-        findViewById<MaterialButton>(R.id.btnSavePrompts).setOnClickListener {
-            settings.promptsText = prompts.text.toString()
-            val n = settings.prompts().size
-            Toast.makeText(
-                this,
-                when (n) {
-                    0 -> "Saved. Screenshots will be sent without a message."
-                    1 -> "Saved. This message goes with every screenshot."
-                    else -> "Saved. You'll pick one of $n messages each time."
-                },
-                Toast.LENGTH_SHORT
-            ).show()
+        findViewById<EditText>(R.id.etPrompts).apply {
+            setText(settings.promptsText)
+            doAfterTextChanged { settings.promptsText = it?.toString().orEmpty() }
+        }
+        findViewById<MaterialSwitch>(R.id.swBurnIn).apply {
+            isChecked = settings.burnIn
+            setOnCheckedChangeListener { _, on -> settings.burnIn = on }
         }
 
         requestNotificationPermission()
@@ -57,11 +78,53 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val installed = ClaudeApp.isInstalled(this)
-        findViewById<TextView>(R.id.claudeStatus).text =
-            if (installed) "Claude app: installed" else "Claude app: not installed"
-        findViewById<MaterialButton>(R.id.btnGetClaude).visibility =
-            if (installed) View.GONE else View.VISIBLE
+        refreshAppChips()
+    }
+
+    private fun header(id: Int, icon: Int, title: String) {
+        val v = findViewById<View>(id)
+        v.findViewById<ImageView>(R.id.icon).setImageResource(icon)
+        v.findViewById<TextView>(R.id.title).text = title
+    }
+
+    /** One filter chip per supported AI app. */
+    private fun buildAppChips() {
+        AiApp.entries.forEach { app ->
+            val chip = (layoutInflater.inflate(R.layout.chip_app, appChips, false) as Chip).apply {
+                id = View.generateViewId()
+                tag = app
+                text = app.label
+            }
+            appChips.addView(chip)
+        }
+        appChips.setOnCheckedStateChangeListener { group, ids ->
+            val id = ids.firstOrNull() ?: return@setOnCheckedStateChangeListener
+            val app = group.findViewById<Chip>(id)?.tag as? AiApp ?: return@setOnCheckedStateChangeListener
+            if (settings.app != app) settings.app = app
+            refreshStatus()
+        }
+    }
+
+    private fun refreshAppChips() {
+        for (i in 0 until appChips.childCount) {
+            val chip = appChips.getChildAt(i) as Chip
+            val app = chip.tag as AiApp
+            chip.alpha = if (app.isInstalled(this)) 1f else 0.6f
+            if (app == settings.app && !chip.isChecked) chip.isChecked = true
+        }
+        refreshStatus()
+    }
+
+    private fun refreshStatus() {
+        val app = settings.app
+        val installed = app.isInstalled(this)
+        findViewById<TextView>(R.id.appStatus).text =
+            if (installed) "Text and screenshots open in ${app.label}."
+            else "${app.label} is not installed yet."
+        findViewById<MaterialButton>(R.id.btnGetApp).apply {
+            text = "Get ${app.label}"
+            visibility = if (installed) View.GONE else View.VISIBLE
+        }
     }
 
     private fun addTile() {
@@ -75,16 +138,16 @@ class MainActivity : AppCompatActivity() {
             ) { result ->
                 val msg = when (result) {
                     StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED -> "Tile added to Quick Settings"
-                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> "Tile is already in Quick Settings"
+                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> "The tile is already in Quick Settings"
                     else -> "Tile not added"
                 }
-                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                Snackbar.make(findViewById(R.id.scroll), msg, Snackbar.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(
-                this,
-                "Pull down Quick Settings, tap the edit (pencil) button and drag \"AskAI capture\" in.",
-                Toast.LENGTH_LONG
+            Snackbar.make(
+                findViewById(R.id.scroll),
+                "Open Quick Settings, tap the pencil and drag AskAI capture into the panel.",
+                Snackbar.LENGTH_LONG
             ).show()
         }
     }
@@ -106,5 +169,6 @@ class MainActivity : AppCompatActivity() {
             else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP
         )
+        Toast.makeText(this, if (on) "AskAI shown in selection menu" else "AskAI hidden from selection menu", Toast.LENGTH_SHORT).show()
     }
 }

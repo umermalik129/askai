@@ -8,12 +8,17 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 
-/** Hands text or an image to the installed Claude app. */
-object ClaudeApp {
-    const val PACKAGE = "com.anthropic.claude"
+/** AI apps that text or screenshots can be handed to. Each must also be listed in the manifest <queries>. */
+enum class AiApp(val label: String, val pkg: String) {
+    CLAUDE("Claude", "com.anthropic.claude"),
+    CHATGPT("ChatGPT", "com.openai.chatgpt"),
+    GEMINI("Gemini", "com.google.android.apps.bard"),
+    PERPLEXITY("Perplexity", "ai.perplexity.app.android"),
+    GROK("Grok", "ai.x.grok"),
+    COPILOT("Copilot", "com.microsoft.copilot");
 
     fun isInstalled(ctx: Context): Boolean =
-        runCatching { ctx.packageManager.getPackageInfo(PACKAGE, 0) }.isSuccess
+        runCatching { ctx.packageManager.getPackageInfo(pkg, 0) }.isSuccess
 
     fun sendText(ctx: Context, text: String) = send(ctx, Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
@@ -21,7 +26,7 @@ object ClaudeApp {
     })
 
     /**
-     * Shares the image. Claude ignores share text when an image is attached, so [message]
+     * Shares the image. Most AI apps ignore share text when an image is attached, so [message]
      * is also put on the clipboard for a quick paste into the chat box.
      */
     fun sendImage(ctx: Context, uri: Uri, message: String? = null) {
@@ -29,7 +34,7 @@ object ClaudeApp {
             val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             cm.setPrimaryClip(ClipData.newPlainText("AskAI message", message))
             Toast.makeText(
-                ctx, "Message copied. Long-press the chat box in Claude and tap Paste.",
+                ctx, "Message copied. Long-press the chat box in $label and tap Paste.",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -45,14 +50,14 @@ object ClaudeApp {
     private fun send(ctx: Context, intent: Intent) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (!isInstalled(ctx)) {
-            Toast.makeText(ctx, "Claude app is not installed", Toast.LENGTH_LONG).show()
+            Toast.makeText(ctx, "$label app is not installed", Toast.LENGTH_LONG).show()
             openStore(ctx)
             return
         }
         try {
-            ctx.startActivity(Intent(intent).setPackage(PACKAGE))
+            ctx.startActivity(Intent(intent).setPackage(pkg))
         } catch (e: ActivityNotFoundException) {
-            // Claude did not accept this content directly; let the user pick a target.
+            // The app did not accept this content directly; let the user pick a target.
             ctx.startActivity(
                 Intent.createChooser(intent, "Send to").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
@@ -60,11 +65,11 @@ object ClaudeApp {
     }
 
     fun openStore(ctx: Context) {
-        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$PACKAGE"))
+        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg"))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { ctx.startActivity(market) }.onFailure {
             ctx.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$PACKAGE"))
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg"))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
