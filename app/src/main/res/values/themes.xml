@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AskAI" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="Theme.AskAI.Crop">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!-- Fully transparent, no animation: used by activities that only hand off work. -->
+    <style name="Theme.AskAI.Invisible" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>
