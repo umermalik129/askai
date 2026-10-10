@@ -31,13 +31,8 @@ There are no unit or instrumented tests.
 
 - Text path: `adb shell am start -a android.intent.action.PROCESS_TEXT -t text/plain --es android.intent.extra.PROCESS_TEXT Word -n com.technatix.askai/.ProcessTextActivity`
   (the extra must be a single word; the shell splits on spaces). The chosen AI app should come to the front.
-- Capture path: `adb shell am start -a android.intent.action.ASSIST -n com.technatix.askai/.CaptureActivity`
-  opens the MediaProjection consent dialog, which needs a real tap; the rest can't be driven from adb.
-  `adb shell cmd statusbar add-tile com.technatix.askai/.CaptureTileService` registers the tile.
-- Assistant role: `adb shell cmd role add-role-holder android.app.role.ASSISTANT com.technatix.askai`
-  (remove first with `remove-role-holder` if it was already held, or the voice service isn't picked up).
-  `adb shell settings get secure voice_interaction_service` should then show `.AssistService`.
-  `adb shell input keyevent KEYCODE_ASSIST` fires the gesture when the phone is awake and unlocked.
+- Capture path cannot be driven from adb: `CaptureActivity` is not exported and the MediaProjection
+  consent dialog needs a real tap. `adb shell cmd statusbar add-tile com.technatix.askai/.CaptureTileService` registers the tile.
 - Logs: `adb logcat -s AskAI.Capture AndroidRuntime:E`.
 - Do not fire share intents at the user's AI apps for testing without telling them first; it opens
   those apps on their phone.
@@ -65,14 +60,9 @@ than the official SDKs so one small client covers both.
 
 **Capture path** (four steps, each a separate component because of platform rules):
 1. `CaptureTileService` (Quick Settings tile) launches `CaptureActivity` with a `PendingIntent` on API 34+.
-   The assistant gesture is the other trigger: `AssistService` + `AssistSessionService` +
-   `AssistRecognitionService` (all in `AssistService.kt`, declared via `xml/voice_interaction_service.xml`)
-   make AskAI a real `VoiceInteractionService`, which is what OEM "digital assistant" pickers list
-   (a bare `ACTION_ASSIST` activity was not shown on the user's vivo phone). `AssistSession.onShow`
-   waits 600 ms for `onHandleScreenshot`; if the system supplies the bitmap it goes straight to
-   `CropActivity` with no consent dialog, otherwise it launches `CaptureActivity`. Activities are
-   started with `startAssistantActivity`, the session API that is exempt from background-start rules.
-   `CaptureActivity` keeps its `ACTION_ASSIST` filter as a secondary entry point.
+   The tile is the only trigger. A digital-assistant route (VoiceInteractionService + assist
+   screenshot) was built and removed at the user's request in Oct 2026 because vivo's navigation
+   gestures never reach the assistant; it is in git history (commit 4167123) if ever wanted again.
 2. `CaptureActivity` (invisible) requests MediaProjection consent, restricted to the entire screen on
    API 34+, measures system-bar insets from its own window, then starts `CaptureService` after a
    400 ms delay so the consent dialog has faded. It stays alive to receive the result because a

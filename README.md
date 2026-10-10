@@ -34,15 +34,6 @@ Some apps (LinkedIn, images, PDFs) don't let you select text. For those:
 The status bar, navigation bar and display cutout are cropped out, so the
 image only contains app content.
 
-**Start it with a gesture.** Set AskAI as the digital assistant app (AskAI
-settings → *Choose assistant app*, or Android Settings → Apps → Default apps
-→ Digital assistant app). The assistant gesture then starts a capture: swipe
-up from a bottom corner with gesture navigation, or long-press Home with
-button navigation. If the assistant is allowed to use screenshots (a switch
-on that same settings page) the capture skips the consent dialog entirely;
-otherwise the usual consent flow runs. This replaces Gemini / Google
-Assistant on that gesture until you switch back.
-
 ### API mode
 Pick **Use an API** in settings, choose **Claude** or **OpenAI-compatible**,
 and enter a key. The model and, for OpenAI-compatible providers, the base URL
@@ -91,7 +82,6 @@ new, point `JAVA_HOME` at a JDK 17 or 21.
 | `PromptPicker` | The prompt chooser shared by both paths; skipped when there is at most one prompt. |
 | `AnswerActivity` / `LlmClient` | API mode: streams from the Claude Messages API or an OpenAI-compatible `/chat/completions` endpoint over raw HTTP and shows the result. |
 | `CaptureTileService` | The Quick Settings tile; launches `CaptureActivity`. |
-| `AssistService` / `AssistSession` | Registers AskAI as a digital assistant. On the gesture, uses the system-provided screenshot when available, else launches `CaptureActivity`. |
 | `CaptureActivity` | Invisible; asks for `MediaProjection` consent and measures the system bars. |
 | `CaptureService` | Foreground service that grabs one frame through a `VirtualDisplay`, strips the bars and saves a PNG. |
 | `CropView` / `CropActivity` | The movable, resizable box over the screenshot. |

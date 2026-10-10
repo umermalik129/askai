@@ -3,7 +3,6 @@ package com.technatix.askai
 import android.Manifest
 import android.app.StatusBarManager
 import android.content.ComponentName
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -78,7 +77,6 @@ class MainActivity : AppCompatActivity() {
             setOnCheckedChangeListener { _, on -> setEnabled(textEntry, on) }
         }
         findViewById<MaterialButton>(R.id.btnAddTile).setOnClickListener { addTile() }
-        findViewById<MaterialButton>(R.id.btnAssistant).setOnClickListener { openAssistantSettings() }
 
         requestNotificationPermission()
     }
@@ -294,22 +292,6 @@ class MainActivity : AppCompatActivity() {
                 "Open Quick Settings, tap the pencil and drag AskAI capture into the panel.",
                 Snackbar.LENGTH_LONG
             ).show()
-        }
-    }
-
-    /** Opens the system screen where the default assistant app is chosen. */
-    private fun openAssistantSettings() {
-        val candidates = listOf(
-            Intent(android.provider.Settings.ACTION_VOICE_INPUT_SETTINGS),
-            Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS),
-            Intent(android.provider.Settings.ACTION_SETTINGS)
-        )
-        for (i in candidates) {
-            if (i.resolveActivity(packageManager) != null) {
-                startActivity(i)
-                Toast.makeText(this, "Pick AskAI as the digital assistant app", Toast.LENGTH_LONG).show()
-                return
-            }
         }
     }
 
