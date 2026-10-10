@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-AskAI is a small Android app (Kotlin, XML views, no Compose) that hands selected text or a cropped
-screenshot to a third-party AI app (Claude by default) via `ACTION_SEND`. There is no backend, no
-API key, and no network code. Package: `com.technatix.askai`. minSdk 26, target/compile SDK 34.
+AskAI is a small Android app (Kotlin, XML views, no Compose) that sends selected text or a cropped
+screenshot either to a third-party AI app via `ACTION_SEND` (open-app mode) or straight to the
+Claude Messages API / an OpenAI-compatible endpoint over raw OkHttp (API mode) and shows the
+streamed answer in a popup. Package: `com.technatix.askai`. minSdk 26, target/compile SDK 34.
 
 ## Building and running
 
@@ -30,24 +31,48 @@ There are no unit or instrumented tests.
 
 - Text path: `adb shell am start -a android.intent.action.PROCESS_TEXT -t text/plain --es android.intent.extra.PROCESS_TEXT Word -n com.technatix.askai/.ProcessTextActivity`
   (the extra must be a single word; the shell splits on spaces). The chosen AI app should come to the front.
-- Capture path cannot be driven from adb: `CaptureActivity` is not exported and the MediaProjection
-  consent dialog needs a real tap. `adb shell cmd statusbar add-tile com.technatix.askai/.CaptureTileService` registers the tile.
+- Capture path: `adb shell am start -a android.intent.action.ASSIST -n com.technatix.askai/.CaptureActivity`
+  opens the MediaProjection consent dialog, which needs a real tap; the rest can't be driven from adb.
+  `adb shell cmd statusbar add-tile com.technatix.askai/.CaptureTileService` registers the tile.
+- Assistant role: `adb shell cmd role add-role-holder android.app.role.ASSISTANT com.technatix.askai`
+  (remove first with `remove-role-holder` if it was already held, or the voice service isn't picked up).
+  `adb shell settings get secure voice_interaction_service` should then show `.AssistService`.
+  `adb shell input keyevent KEYCODE_ASSIST` fires the gesture when the phone is awake and unlocked.
 - Logs: `adb logcat -s AskAI.Capture AndroidRuntime:E`.
 - Do not fire share intents at the user's AI apps for testing without telling them first; it opens
   those apps on their phone.
 
 ## Architecture
 
-Two independent entry points converge on `AiApp` (enum of supported apps with their package names).
-`Settings` (plain SharedPreferences) holds the chosen app, the message list, and the burn-in flag.
+Two entry points (text selection, screen capture) each end in the same fork: `pickPrompt` (in
+`PromptPicker.kt`, skipped when ≤1 prompt) then `Settings.mode` decides between `AiApp.sendText` /
+`sendImage` (open-app mode) and `AnswerActivity` (API mode). `Settings` is an
+`EncryptedSharedPreferences` store holding mode, chosen `AiApp`, `ApiProvider` + keys/models/base
+URL, the `Prompt(label, text)` list (JSON), and the burn-in flag.
 
-**Text path**: `ProcessTextActivity` (invisible theme, `ACTION_PROCESS_TEXT`, label "AskAI" is what
-the selection menu shows) → appends the saved message → `AiApp.sendText`. It is a plain `Activity`
-so it can use the platform translucent theme; `MainActivity` toggles it on/off via
+**Text path**: `ProcessTextActivity` (`Theme.AskAI.Invisible`, `ACTION_PROCESS_TEXT`, label "AskAI"
+is what the selection menu shows). It is an `AppCompatActivity` so the Material prompt dialog can
+be shown over the host app; `MainActivity` toggles it on/off via
 `PackageManager.setComponentEnabledSetting`.
+
+**API path**: `AnswerActivity` (`Theme.AskAI.Popup`, bottom 75 % of the screen) runs `LlmClient.stream`
+on `Dispatchers.IO` and appends deltas to a selectable TextView. Copy closes the popup. `LlmClient`
+is raw HTTP: Claude uses `/v1/messages` with SSE `content_block_delta` events, images as base64
+JPEG content blocks (longest side ≤1568 px), and `fallbacks: "default"` + the
+`server-side-fallback-2026-07-01` beta header on models that support it; OpenAI-compatible uses
+`/chat/completions` with `image_url` data URIs. Both providers are intentionally raw HTTP rather
+than the official SDKs so one small client covers both.
 
 **Capture path** (four steps, each a separate component because of platform rules):
 1. `CaptureTileService` (Quick Settings tile) launches `CaptureActivity` with a `PendingIntent` on API 34+.
+   The assistant gesture is the other trigger: `AssistService` + `AssistSessionService` +
+   `AssistRecognitionService` (all in `AssistService.kt`, declared via `xml/voice_interaction_service.xml`)
+   make AskAI a real `VoiceInteractionService`, which is what OEM "digital assistant" pickers list
+   (a bare `ACTION_ASSIST` activity was not shown on the user's vivo phone). `AssistSession.onShow`
+   waits 600 ms for `onHandleScreenshot`; if the system supplies the bitmap it goes straight to
+   `CropActivity` with no consent dialog, otherwise it launches `CaptureActivity`. Activities are
+   started with `startAssistantActivity`, the session API that is exempt from background-start rules.
+   `CaptureActivity` keeps its `ACTION_ASSIST` filter as a secondary entry point.
 2. `CaptureActivity` (invisible) requests MediaProjection consent, restricted to the entire screen on
    API 34+, measures system-bar insets from its own window, then starts `CaptureService` after a
    400 ms delay so the consent dialog has faded. It stays alive to receive the result because a
@@ -61,18 +86,16 @@ so it can use the platform translucent theme; `MainActivity` toggles it on/off v
 Both capture activities use `taskAffinity="com.technatix.askai.capture"` so launching from the tile
 never brings the settings screen up underneath the translucent capture window.
 
-**Message delivery rules** (shared by both paths): zero saved messages → send alone; one → use it;
-several → show a picker. AI apps ignore `EXTRA_TEXT` when an image is attached, which is why
-`Settings.burnIn` (default on) draws the message into the screenshot; when off, the message is
-copied to the clipboard instead.
+**Prompt rules** (shared by both paths): zero prompts → send alone; one → use it; several → picker
+showing labels. In open-app mode AI apps ignore `EXTRA_TEXT` when an image is attached, which is
+why `Settings.burnIn` (default on) draws the prompt into the screenshot via `Caption`; when off,
+the prompt is copied to the clipboard instead. API mode needs neither.
 
 **Adding an AI app**: one entry in the `AiApp` enum and a matching `<package>` in the manifest
 `<queries>` block, or `isInstalled` will always report false on Android 11+.
 
 ## Repo notes
 
-- `_unused_api/` is an earlier version that called the Anthropic/OpenAI APIs directly. It is outside
-  the source set and not compiled. Leave it unless asked to delete it.
 - The settings screen (`MainActivity`) applies `DynamicColors` and `enableEdgeToEdge()`; keep new
   screens consistent with that and with Material 3 widgets.
 - `.gitattributes` normalises to LF. Git identity is set per-repo; commits are pushed to

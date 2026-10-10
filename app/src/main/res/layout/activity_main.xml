@@ -49,34 +49,256 @@
                     android:padding="20dp">
 
                     <include
-                        layout="@layout/section_header"
-                        android:id="@+id/hdrApp" />
+                        android:id="@+id/hdrSend"
+                        layout="@layout/section_header" />
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/cgApp"
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/tgMode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        app:chipSpacingHorizontal="8dp"
                         app:selectionRequired="true"
-                        app:singleSelection="true" />
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeApp"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Open an app"
+                            app:icon="@drawable/ic_phone" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeApi"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Use an API"
+                            app:icon="@drawable/ic_api" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <!-- Open-app mode -->
+                    <LinearLayout
+                        android:id="@+id/groupOpenApp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/cgApp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            app:chipSpacingHorizontal="8dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true" />
+
+                        <TextView
+                            android:id="@+id/appStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGetApp"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_open" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="16dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Write prompt into screenshots"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Apps drop text shared with an image, so the prompt is drawn as a caption under it. Off: it goes to the clipboard for you to paste."
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+                            </LinearLayout>
+
+                            <com.google.android.material.materialswitch.MaterialSwitch
+                                android:id="@+id/swBurnIn"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- API mode -->
+                    <LinearLayout
+                        android:id="@+id/groupApi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/tgProvider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnProvClaude"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Claude" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnProvOpenai"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="OpenAI-compatible" />
+                        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:hint="API key"
+                            app:endIconMode="password_toggle"
+                            app:helperTextEnabled="true">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etKey"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPassword" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilModel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="Model"
+                            app:helperTextEnabled="true">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etModel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilBaseUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="Base URL"
+                            app:helperText="Change for Gemini, OpenRouter, Groq or a local server"
+                            app:helperTextEnabled="true">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etBaseUrl"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textUri" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="The answer appears in a popup you can copy from. Keys are stored encrypted on this phone and only ever sent to the provider."
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Prompts -->
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewFilledStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <include
+                        android:id="@+id/hdrPrompts"
+                        layout="@layout/section_header" />
 
                     <TextView
-                        android:id="@+id/appStatus"
+                        android:id="@+id/promptsHint"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Drag the handle to reorder. Tap a prompt to edit it."
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/promptList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                    <TextView
+                        android:id="@+id/promptsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="12dp"
+                        android:text="No prompts yet."
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone" />
+
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnGetApp"
+                        android:id="@+id/btnAddPrompt"
                         style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:visibility="gone"
-                        app:icon="@drawable/ic_open" />
+                        android:text="Add prompt"
+                        app:icon="@drawable/ic_add" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -94,8 +316,8 @@
                     android:padding="20dp">
 
                     <include
-                        layout="@layout/section_header"
-                        android:id="@+id/hdrText" />
+                        android:id="@+id/hdrText"
+                        layout="@layout/section_header" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -131,8 +353,7 @@
             <com.google.android.material.card.MaterialCardView
                 style="?attr/materialCardViewFilledStyle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -141,8 +362,8 @@
                     android:padding="20dp">
 
                     <include
-                        layout="@layout/section_header"
-                        android:id="@+id/hdrCapture" />
+                        android:id="@+id/hdrCapture"
+                        layout="@layout/section_header" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -157,7 +378,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:lineSpacingExtra="4dp"
-                        android:text="1.  Pull down Quick Settings and tap the AskAI capture tile.\n2.  Allow screen capture.\n3.  Move and resize the box over the area you want.\n4.  Tap Send."
+                        android:text="1.  Pull down Quick Settings and tap the AskAI capture tile.\n2.  Allow screen capture.\n3.  Move and resize the box over the area you want.\n4.  Tap Send and pick a prompt."
                         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
                     <com.google.android.material.button.MaterialButton
@@ -168,84 +389,30 @@
                         android:layout_marginTop="16dp"
                         android:text="Add tile to Quick Settings"
                         app:icon="@drawable/ic_tile_add" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Messages -->
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewFilledStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <include
-                        layout="@layout/section_header"
-                        android:id="@+id/hdrMessages" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Added to every text and screenshot you send. One per line: with one you are never asked, with several you pick each time."
+                        android:layout_marginTop="20dp"
+                        android:text="Start with a gesture"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Optional. Make AskAI the digital assistant app and the assistant gesture starts a capture: a diagonal swipe from a bottom corner, or long-press Home on button navigation. Some phones route that gesture elsewhere, in which case use the tile instead. This replaces Gemini or Google Assistant on the gesture until you switch back."
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilPrompts"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:hint="Messages"
-                        app:helperText="Saved automatically"
-                        app:helperTextEnabled="true">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etPrompts"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="textMultiLine|textCapSentences"
-                            android:minLines="2" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <LinearLayout
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAssistant"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="16dp"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Write message into screenshots"
-                                android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="AI apps drop text shared with an image, so the message is drawn as a caption under it. Off: it goes to the clipboard for you to paste."
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-                        </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/swBurnIn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
+                        android:text="Choose assistant app"
+                        app:icon="@drawable/ic_open" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

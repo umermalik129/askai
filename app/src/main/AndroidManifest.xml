@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -47,12 +48,19 @@
         </activity>
 
         <!-- Screen-area capture flow. Own task so the AskAI settings screen never shows under it. -->
+        <!-- Also the assistant entry point: set AskAI as the digital assistant app and the
+             assistant gesture (corner swipe / long-press Home) starts a capture. -->
         <activity
             android:name=".CaptureActivity"
-            android:exported="false"
+            android:exported="true"
             android:excludeFromRecents="true"
             android:taskAffinity="com.technatix.askai.capture"
-            android:theme="@style/Theme.AskAI.Invisible" />
+            android:theme="@style/Theme.AskAI.Invisible">
+            <intent-filter>
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".CropActivity"
@@ -60,6 +68,40 @@
             android:excludeFromRecents="true"
             android:taskAffinity="com.technatix.askai.capture"
             android:theme="@style/Theme.AskAI.Crop" />
+
+        <!-- Streams and shows an API answer; closes once the user copies it. -->
+        <activity
+            android:name=".AnswerActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AskAI.Popup" />
+
+        <!-- Digital-assistant registration: lets AskAI be chosen as the assistant app so the
+             assistant gesture starts a capture. See AssistService.kt. -->
+        <service
+            android:name=".AssistService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".AssistSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <service
+            android:name=".AssistRecognitionService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
 
         <service
             android:name=".CaptureService"

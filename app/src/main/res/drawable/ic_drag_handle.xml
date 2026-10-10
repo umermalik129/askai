@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Same four-point star as the launcher icon, so the tile and notification are recognisable. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -8,5 +7,5 @@
     android:tint="?attr/colorControlNormal">
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M12,2.5 L14.4,9.6 L21.5,12 L14.4,14.4 L12,21.5 L9.6,14.4 L2.5,12 L9.6,9.6 Z" />
+        android:pathData="M20,9H4v2h16V9zM4,15h16v-2H4v2z" />
 </vector>

@@ -7,8 +7,18 @@
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
-    <!-- Fully transparent, no animation: used by activities that only hand off work. -->
-    <style name="Theme.AskAI.Invisible" parent="android:Theme.Translucent.NoTitleBar">
+    <!-- Fully transparent, no animation: used by activities that only hand off work or show a dialog. -->
+    <style name="Theme.AskAI.Invisible">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <!-- Bottom-sheet style popup for API answers. -->
+    <style name="Theme.AskAI.Popup" parent="Theme.Material3.DayNight.Dialog">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@drawable/popup_bg</item>
     </style>
 </resources>

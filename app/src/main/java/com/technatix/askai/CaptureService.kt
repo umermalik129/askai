@@ -127,15 +127,7 @@ class CaptureService : Service() {
         val bmp = Bitmap.createBitmap(w + rowPadding, h, Bitmap.Config.ARGB_8888)
         bmp.copyPixelsFromBuffer(plane.buffer)
         val full = if (rowPadding == 0) bmp else Bitmap.createBitmap(bmp, 0, 0, w, h)
-        return stripBars(full)
-    }
-
-    /** Cuts off the status bar, navigation bar and cutout so only app content remains. */
-    private fun stripBars(bmp: Bitmap): Bitmap {
-        val w = bmp.width - bars.left - bars.right
-        val h = bmp.height - bars.top - bars.bottom
-        if (w <= 0 || h <= 0 || (w == bmp.width && h == bmp.height)) return bmp
-        return Bitmap.createBitmap(bmp, bars.left, bars.top, w, h)
+        return stripBars(full, bars)
     }
 
     private fun save(bmp: Bitmap): File {
@@ -185,5 +177,13 @@ class CaptureService : Service() {
                 .putExtra(EXTRA_BARS, bars)
 
         fun captureDir(ctx: Context): File = File(ctx.cacheDir, "captures").apply { mkdirs() }
+
+        /** Cuts off the status bar, navigation bar and cutout so only app content remains. */
+        fun stripBars(bmp: Bitmap, bars: Rect): Bitmap {
+            val w = bmp.width - bars.left - bars.right
+            val h = bmp.height - bars.top - bars.bottom
+            if (w <= 0 || h <= 0 || (w == bmp.width && h == bmp.height)) return bmp
+            return Bitmap.createBitmap(bmp, bars.left, bars.top, w, h)
+        }
     }
 }
