@@ -18,7 +18,7 @@
         android:background="#99000000"
         android:paddingHorizontal="14dp"
         android:paddingVertical="6dp"
-        android:text="Move the box or drag its edges to fit"
+        android:text="Drag the edges to fit, or drag inside to move"
         android:textColor="@android:color/white" />
 
     <LinearLayout

@@ -40,9 +40,11 @@ class CropView @JvmOverloads constructor(
     private var lastY = 0f
 
     private val density = resources.displayMetrics.density
-    private val hitRadius = 24 * density
+    private val hitRadius = 28 * density
     private val minSize = 48 * density
-    private val handleRadius = 7 * density
+    private val sideMargin = 4 * density
+    private val handleWidth = 48 * density
+    private val handleHeight = 8 * density
 
     private val dim = Paint().apply { color = 0x99000000.toInt() }
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -72,12 +74,11 @@ class CropView @JvmOverloads constructor(
         if (box == null) box = defaultBox()
     }
 
+    /** Full width a small margin from each side, 55 % tall, centred. Every edge can be dragged. */
     private fun defaultBox(): RectF {
-        val w = imageRect.width() * 0.84f
-        val h = imageRect.height() * 0.4f
-        val cx = imageRect.centerX()
+        val h = imageRect.height() * 0.55f
         val cy = imageRect.centerY()
-        return RectF(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+        return RectF(imageRect.left + sideMargin, cy - h / 2, imageRect.right - sideMargin, cy + h / 2)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -89,21 +90,19 @@ class CropView @JvmOverloads constructor(
         canvas.drawRect(imageRect, dim)
         canvas.restore()
         canvas.drawRect(r, stroke)
-        // Corner handles
-        handle(canvas, r.left, r.top)
-        handle(canvas, r.right, r.top)
-        handle(canvas, r.left, r.bottom)
-        handle(canvas, r.right, r.bottom)
-        // Edge handles
-        handle(canvas, r.centerX(), r.top)
-        handle(canvas, r.centerX(), r.bottom)
-        handle(canvas, r.left, r.centerY())
-        handle(canvas, r.right, r.centerY())
+        handle(canvas, r.centerX(), r.top, horizontal = true)
+        handle(canvas, r.centerX(), r.bottom, horizontal = true)
+        handle(canvas, r.left, r.centerY(), horizontal = false)
+        handle(canvas, r.right, r.centerY(), horizontal = false)
     }
 
-    private fun handle(canvas: Canvas, x: Float, y: Float) {
-        canvas.drawCircle(x, y, handleRadius, handleFill)
-        canvas.drawCircle(x, y, handleRadius, handleRing)
+    /** A pill centred on (x, y) marking an edge's grab point; lies along the edge it belongs to. */
+    private fun handle(canvas: Canvas, x: Float, y: Float, horizontal: Boolean) {
+        val half = handleHeight / 2
+        val pill = if (horizontal) RectF(x - handleWidth / 2, y - half, x + handleWidth / 2, y + half)
+        else RectF(x - half, y - handleWidth / 2, x + half, y + handleWidth / 2)
+        canvas.drawRoundRect(pill, half, half, handleFill)
+        canvas.drawRoundRect(pill, half, half, handleRing)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -112,13 +111,18 @@ class CropView @JvmOverloads constructor(
         val y = event.y
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                val withinY = y in (r.top - hitRadius)..(r.bottom + hitRadius)
-                val withinX = x in (r.left - hitRadius)..(r.right + hitRadius)
-                resizeLeft = withinY && abs(x - r.left) <= hitRadius
-                resizeRight = withinY && abs(x - r.right) <= hitRadius
-                resizeTop = withinX && abs(y - r.top) <= hitRadius
-                resizeBottom = withinX && abs(y - r.bottom) <= hitRadius
-                moving = !(resizeLeft || resizeRight || resizeTop || resizeBottom) && r.contains(x, y)
+                // Edges are grabbed anywhere along their length; near a corner both edges move together.
+                val nearX = x in (r.left - hitRadius)..(r.right + hitRadius)
+                val nearY = y in (r.top - hitRadius)..(r.bottom + hitRadius)
+                val dTop = abs(y - r.top)
+                val dBottom = abs(y - r.bottom)
+                val dLeft = abs(x - r.left)
+                val dRight = abs(x - r.right)
+                resizeTop = nearX && dTop <= hitRadius && dTop <= dBottom
+                resizeBottom = nearX && dBottom <= hitRadius && !resizeTop
+                resizeLeft = nearY && dLeft <= hitRadius && dLeft <= dRight
+                resizeRight = nearY && dRight <= hitRadius && !resizeLeft
+                moving = !(resizeTop || resizeBottom || resizeLeft || resizeRight) && r.contains(x, y)
                 lastX = x
                 lastY = y
                 parent?.requestDisallowInterceptTouchEvent(true)

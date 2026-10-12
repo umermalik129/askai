@@ -70,7 +70,8 @@ than the official SDKs so one small client covers both.
 3. `CaptureService` is a foreground service of type `mediaProjection` (required on API 34+ before
    `getMediaProjection`). It grabs one `ImageReader` frame from a `VirtualDisplay`, strips the bars,
    writes `cache/captures/screen.png`, and reports back through the static `CaptureService.listener`.
-4. `CropActivity` shows the frame in `CropView` (movable/resizable box), optionally draws the message
+4. `CropActivity` shows the frame in `CropView` (box defaults to full width minus a 4 dp margin and
+   55 % height so it usually needs one nudge; every edge drags, inside drags move), optionally draws the message
    under the crop via `Caption`, then `AiApp.sendImage` with a `FileProvider` URI.
 
 Both capture activities use `taskAffinity="com.technatix.askai.capture"` so launching from the tile

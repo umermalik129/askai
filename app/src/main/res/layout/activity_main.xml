@@ -378,7 +378,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:lineSpacingExtra="4dp"
-                        android:text="1.  Pull down Quick Settings and tap the AskAI capture tile.\n2.  Allow screen capture.\n3.  Move and resize the box over the area you want.\n4.  Tap Send and pick a prompt."
+                        android:text="1.  Pull down Quick Settings and tap the AskAI capture tile.\n2.  Allow screen capture.\n3.  Drag the edges of the box over the area you want.\n4.  Tap Send and pick a prompt."
                         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
                     <com.google.android.material.button.MaterialButton

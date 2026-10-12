@@ -27,8 +27,8 @@ Some apps (LinkedIn, images, PDFs) don't let you select text. For those:
 
 1. Pull down Quick Settings and tap the **AskAI capture** tile.
 2. Allow screen capture.
-3. A screenshot appears with a box on it. Drag the box to move it, drag an
-   edge or corner to resize it.
+3. A screenshot appears with a box that already spans most of the screen.
+   Drag any edge to adjust it, or drag inside the box to move it.
 4. Tap **Send** and choose a prompt.
 
 The status bar, navigation bar and display cutout are cropped out, so the
