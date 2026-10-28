@@ -47,6 +47,21 @@
             </intent-filter>
         </activity>
 
+        <!-- "WhatsApp" entry in the text-selection menu: opens wa.me/<number> for a selected phone number. -->
+        <activity
+            android:name=".WhatsAppActivity"
+            android:exported="true"
+            android:label="WhatsApp"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.AskAI.Invisible">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <!-- Screen-area capture flow. Own task so the AskAI settings screen never shows under it. -->
         <activity
             android:name=".CaptureActivity"

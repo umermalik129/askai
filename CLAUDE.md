@@ -48,7 +48,10 @@ URL, the `Prompt(label, text)` list (JSON), and the burn-in flag.
 **Text path**: `ProcessTextActivity` (`Theme.AskAI.Invisible`, `ACTION_PROCESS_TEXT`, label "AskAI"
 is what the selection menu shows). It is an `AppCompatActivity` so the Material prompt dialog can
 be shown over the host app; `MainActivity` toggles it on/off via
-`PackageManager.setComponentEnabledSetting`.
+`PackageManager.setComponentEnabledSetting`. `WhatsAppActivity` is a second, independent
+`PROCESS_TEXT` entry ("WhatsApp", own switch) that opens `https://wa.me/<digits>`. Selection-menu
+entries cannot depend on the selected text, so it shows for every selection and toasts "Not a
+phone number" otherwise; local numbers get the SIM's country code via `PhoneNumberUtils.formatNumberToE164`.
 
 **API path**: `AnswerActivity` (`Theme.AskAI.Popup`, bottom 75 % of the screen) runs `LlmClient.stream`
 on `Dispatchers.IO` and appends deltas to a selectable TextView. Copy closes the popup. `LlmClient`

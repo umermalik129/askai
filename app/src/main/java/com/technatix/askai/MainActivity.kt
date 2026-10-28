@@ -33,6 +33,7 @@ import com.google.android.material.textfield.TextInputLayout
 class MainActivity : AppCompatActivity() {
 
     private val textEntry get() = ComponentName(this, ProcessTextActivity::class.java)
+    private val whatsAppEntry get() = ComponentName(this, WhatsAppActivity::class.java)
     private lateinit var settings: Settings
 
     private lateinit var appChips: ChipGroup
@@ -74,7 +75,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<MaterialSwitch>(R.id.swTextEntry).apply {
             isChecked = isEnabled(textEntry)
-            setOnCheckedChangeListener { _, on -> setEnabled(textEntry, on) }
+            setOnCheckedChangeListener { _, on -> setEnabled(textEntry, on, "AskAI") }
+        }
+        findViewById<MaterialSwitch>(R.id.swWhatsApp).apply {
+            isChecked = isEnabled(whatsAppEntry)
+            setOnCheckedChangeListener { _, on -> setEnabled(whatsAppEntry, on, "WhatsApp") }
         }
         findViewById<MaterialButton>(R.id.btnAddTile).setOnClickListener { addTile() }
 
@@ -305,13 +310,13 @@ class MainActivity : AppCompatActivity() {
     private fun isEnabled(c: ComponentName) =
         packageManager.getComponentEnabledSetting(c) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 
-    private fun setEnabled(c: ComponentName, on: Boolean) {
+    private fun setEnabled(c: ComponentName, on: Boolean, label: String) {
         packageManager.setComponentEnabledSetting(
             c,
             if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
             else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP
         )
-        Toast.makeText(this, if (on) "AskAI shown in selection menu" else "AskAI hidden from selection menu", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, if (on) "$label shown in selection menu" else "$label hidden from selection menu", Toast.LENGTH_SHORT).show()
     }
 }
